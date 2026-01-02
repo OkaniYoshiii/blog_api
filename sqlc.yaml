@@ -1,0 +1,11 @@
+version: "2"
+sql:
+    - engine: "sqlite"
+      queries: "./database/queries"
+      schema: "./database/migrations"
+      gen:
+          go:
+              package: "repository"
+              out: "./internal/repository"
+              emit_json_tags: true
+              # sql_package: "github.com/mattn/go-sqlite3"
