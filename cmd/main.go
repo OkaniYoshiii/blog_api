@@ -22,6 +22,8 @@ var writeTimeout = flag.Int("writetimeout", 3000, "The maximum duration in milli
 var idleTimeout = time.Millisecond * 100
 
 func main() {
+	flag.Parse()
+
 	config, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -44,6 +46,7 @@ func main() {
 	}
 
 	mux.HandleFunc("GET /api/posts", routes.PostsHandler(deps))
+	mux.HandleFunc("POST /api/posts", routes.PostsHandler(deps))
 
 	server := http.Server{
 		Addr:              *address,
