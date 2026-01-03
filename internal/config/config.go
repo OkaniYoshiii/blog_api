@@ -11,13 +11,15 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	Driver string
-	DSN    string
+	Driver       string
+	DSN          string
+	MigrationDir string
 }
 
 type Env struct {
-	DatabaseDriver string
-	DatabaseDSN    string
+	DatabaseDriver    string
+	DatabaseDSN       string
+	GooseMigrationDir string
 }
 
 func Load() (Config, error) {
@@ -35,13 +37,14 @@ func Load() (Config, error) {
 
 func LoadDatabaseConfig(env Env) DatabaseConfig {
 	return DatabaseConfig{
-		Driver: env.DatabaseDriver,
-		DSN:    env.DatabaseDSN,
+		Driver:       env.DatabaseDriver,
+		DSN:          env.DatabaseDSN,
+		MigrationDir: env.GooseMigrationDir,
 	}
 }
 
-func LoadEnv() (Env, error) {
-	envMap, err := godotenv.Read()
+func LoadEnv(filenames ...string) (Env, error) {
+	envMap, err := godotenv.Read(filenames...)
 	if err != nil {
 		return Env{}, err
 	}
@@ -59,8 +62,14 @@ func LoadEnv() (Env, error) {
 		return Env{}, fmt.Errorf(errFmt, "DATABASE_DSN")
 	}
 
+	gooseMigrationDir, ok := envMap["GOOSE_MIGRATION_DIR"]
+	if !ok || len(gooseMigrationDir) == 0 {
+		return Env{}, fmt.Errorf(errFmt, "GOOSE_MIGRATION_DIR")
+	}
+
 	env.DatabaseDriver = driver
 	env.DatabaseDSN = dsn
+	env.GooseMigrationDir = gooseMigrationDir
 
 	return env, nil
 }
