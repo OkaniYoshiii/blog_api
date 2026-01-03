@@ -9,12 +9,12 @@ import (
 	"context"
 )
 
-const createPost = `-- name: CreatePost :exec
+const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
    title, content
 ) VALUES (
     ?, ?
-)
+) RETURNING id, title, content
 `
 
 type CreatePostParams struct {
@@ -22,9 +22,11 @@ type CreatePostParams struct {
 	Content string `json:"content"`
 }
 
-func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) error {
-	_, err := q.db.ExecContext(ctx, createPost, arg.Title, arg.Content)
-	return err
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
+	row := q.db.QueryRowContext(ctx, createPost, arg.Title, arg.Content)
+	var i Post
+	err := row.Scan(&i.ID, &i.Title, &i.Content)
+	return i, err
 }
 
 const listPosts = `-- name: ListPosts :many
