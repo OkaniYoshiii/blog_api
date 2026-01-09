@@ -45,9 +45,9 @@ func main() {
 		Logger:  logger,
 	}
 
-	mux.HandleFunc("GET /api/posts", routes.PostsHandler(deps))
-	mux.HandleFunc("POST /api/posts", routes.PostsHandler(deps))
-	mux.HandleFunc("POST /api/register", routes.RegisterHandler(deps))
+	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
+	mux.HandleFunc("POST /api/v1/posts", routes.PostsHandler(deps))
+	mux.HandleFunc("POST /api/v1/register", routes.RegisterHandler(deps))
 
 	server := http.Server{
 		Addr:              *address,
