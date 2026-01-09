@@ -38,13 +38,15 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	queries := repository.New(db)
+	queries := repository.New()
 
 	deps := routes.Dependencies{
+		DB:      db,
 		Queries: queries,
 		Logger:  logger,
 	}
 
+	mux.HandleFunc("GET /api/v1/health", routes.HealthHandler(deps))
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
 	mux.HandleFunc("POST /api/v1/posts", routes.PostsHandler(deps))
 	mux.HandleFunc("POST /api/v1/register", routes.RegisterHandler(deps))

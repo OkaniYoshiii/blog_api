@@ -18,8 +18,8 @@ type CreateUserParams struct {
 	Password string `json:"password"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Password)
+func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) (User, error) {
+	row := db.QueryRowContext(ctx, createUser, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(&i.ID, &i.Email, &i.Password)
 	return i, err
@@ -29,8 +29,8 @@ const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT (id, email, password) FROM users WHERE users.email = ?
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (interface{}, error) {
+	row := db.QueryRowContext(ctx, getUserByEmail, email)
 	var column_1 interface{}
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -40,8 +40,8 @@ const listUsers = `-- name: ListUsers :many
 SELECT (id, email, password) FROM users
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]interface{}, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers)
+func (q *Queries) ListUsers(ctx context.Context, db DBTX) ([]interface{}, error) {
+	rows, err := db.QueryContext(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}

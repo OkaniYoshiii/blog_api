@@ -22,8 +22,8 @@ type CreatePostParams struct {
 	Content string `json:"content"`
 }
 
-func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(ctx, createPost, arg.Title, arg.Content)
+func (q *Queries) CreatePost(ctx context.Context, db DBTX, arg CreatePostParams) (Post, error) {
+	row := db.QueryRowContext(ctx, createPost, arg.Title, arg.Content)
 	var i Post
 	err := row.Scan(&i.ID, &i.Title, &i.Content)
 	return i, err
@@ -33,8 +33,8 @@ const listPosts = `-- name: ListPosts :many
 SELECT id, title, content FROM posts
 `
 
-func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, listPosts)
+func (q *Queries) ListPosts(ctx context.Context, db DBTX) ([]Post, error) {
+	rows, err := db.QueryContext(ctx, listPosts)
 	if err != nil {
 		return nil, err
 	}

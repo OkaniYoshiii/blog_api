@@ -74,8 +74,9 @@ func Setup(t *testing.T) Dependencies {
 	})
 
 	logger := log.New(&strings.Builder{}, "", 0)
-	queries := repository.New(db)
+	queries := repository.New()
 	deps := Dependencies{
+		DB:      db,
 		Queries: queries,
 		Logger:  logger,
 	}
@@ -137,8 +138,9 @@ func TestPostsRead(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			deps := Setup(t)
 			queries := deps.Queries
+			db := deps.DB
 
-			_, err := queries.CreatePost(context.Background(), createPostParams)
+			_, err := queries.CreatePost(context.Background(), db, createPostParams)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -25,6 +25,7 @@ func PostsHandler(deps Dependencies) http.HandlerFunc {
 }
 
 func GetPostsHandler(deps Dependencies, writer http.ResponseWriter, request *http.Request) {
+	db := deps.DB
 	queries := deps.Queries
 	logger := deps.Logger
 
@@ -33,7 +34,7 @@ func GetPostsHandler(deps Dependencies, writer http.ResponseWriter, request *htt
 		return
 	}
 
-	posts, err := queries.ListPosts(context.Background())
+	posts, err := queries.ListPosts(context.Background(), db)
 	if err != nil {
 		logger.Println(err)
 
@@ -53,6 +54,7 @@ func GetPostsHandler(deps Dependencies, writer http.ResponseWriter, request *htt
 }
 
 func PostPostsHandler(deps Dependencies, writer http.ResponseWriter, request *http.Request) {
+	db := deps.DB
 	queries := deps.Queries
 	logger := deps.Logger
 
@@ -100,7 +102,7 @@ func PostPostsHandler(deps Dependencies, writer http.ResponseWriter, request *ht
 		return
 	}
 
-	post, err := queries.CreatePost(context.Background(), createPostParams)
+	post, err := queries.CreatePost(context.Background(), db, createPostParams)
 	if err != nil {
 		logger.Println(err)
 

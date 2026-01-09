@@ -11,8 +11,10 @@ import (
 )
 
 func RegisterHandler(deps Dependencies) http.HandlerFunc {
+	db := deps.DB
 	logger := deps.Logger
 	queries := deps.Queries
+
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Method != http.MethodPost {
 			writer.WriteHeader(http.StatusMethodNotAllowed)
@@ -58,7 +60,7 @@ func RegisterHandler(deps Dependencies) http.HandlerFunc {
 
 		createUserParams.Password = string(hash)
 
-		user, err := queries.CreateUser(context.Background(), createUserParams)
+		user, err := queries.CreateUser(context.Background(), db, createUserParams)
 		if err != nil {
 			logger.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
