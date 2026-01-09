@@ -1,1 +1,22 @@
 2026/01/02 17:25:06 no such table: posts
+2026/01/09 10:59:10 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 10:59:29 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 11:00:26 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 11:01:12 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 11:03:11 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 11:04:09 Key: '' Error:Field validation for '' failed on the 'required' tag
+2026/01/09 11:09:09 Before
+2026/01/09 11:09:09 Test
+2026/01/09 11:10:04 Before
+2026/01/09 11:10:04 Error
+2026/01/09 11:10:20 Before
+2026/01/09 11:10:20 Error
+2026/01/09 11:10:46 Before
+2026/01/09 11:10:46 Error
+2026/01/09 11:10:56 invalid character 'e' looking for beginning of object key string
+2026/01/09 11:15:31 invalid character 'e' looking for beginning of object key string
+2026/01/09 11:18:15 admin@test.com admin_test
+2026/01/09 11:18:53 admin@test.com admin_test
+2026/01/09 11:18:53 UNIQUE constraint failed: users.email
+2026/01/09 11:19:14 admin@test.com admin
+2026/01/09 11:19:14 Key: '' Error:Field validation for '' failed on the 'min' tag
