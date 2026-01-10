@@ -11,8 +11,10 @@ import (
 	"github.com/OkaniYoshiii/sqlite-go/internal/config"
 	"github.com/OkaniYoshiii/sqlite-go/internal/database"
 	"github.com/OkaniYoshiii/sqlite-go/internal/debug"
+	"github.com/OkaniYoshiii/sqlite-go/internal/middleware"
 	"github.com/OkaniYoshiii/sqlite-go/internal/repository"
 	"github.com/OkaniYoshiii/sqlite-go/internal/routes"
+	"github.com/go-playground/validator/v10"
 )
 
 var address = flag.String("address", "127.0.0.1:8000", "Specifies the TCP address for the server to listen on, in the form “host:port”. ")
@@ -37,6 +39,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	validate := validator.New()
 
 	queries := repository.New()
 
@@ -57,7 +60,7 @@ func main() {
 		ReadHeaderTimeout: time.Millisecond * time.Duration(*readHeaderTimeout),
 		WriteTimeout:      time.Millisecond * time.Duration(*writeTimeout),
 		IdleTimeout:       idleTimeout,
-		Handler:           mux,
+		Handler:           middleware.ApiMiddleware(mux, db, queries, logger, validate),
 		ErrorLog:          logger,
 	}
 

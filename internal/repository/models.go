@@ -4,6 +4,19 @@
 
 package repository
 
+import (
+	"database/sql"
+)
+
+type ApiKey struct {
+	ID          int64          `json:"id"`
+	Value       string         `json:"value"`
+	CreatedAt   string         `json:"created_at"`
+	UpdatedAt   string         `json:"updated_at"`
+	RevokedAt   sql.NullString `json:"revoked_at"`
+	Application string         `json:"application"`
+}
+
 type Post struct {
 	ID      int64  `json:"id"`
 	Title   string `json:"title"`
