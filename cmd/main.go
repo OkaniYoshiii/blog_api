@@ -60,7 +60,7 @@ func main() {
 		ReadHeaderTimeout: time.Millisecond * time.Duration(*readHeaderTimeout),
 		WriteTimeout:      time.Millisecond * time.Duration(*writeTimeout),
 		IdleTimeout:       idleTimeout,
-		Handler:           middleware.ApiMiddleware(mux, db, queries, logger, validate),
+		Handler:           middleware.ApiMiddleware(middleware.CSPMiddleware(mux), db, queries, logger, validate),
 		ErrorLog:          logger,
 	}
 
