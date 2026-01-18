@@ -26,33 +26,33 @@ func (q *Queries) CreateUser(ctx context.Context, db DBTX, arg CreateUserParams)
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT (id, email, password) FROM users WHERE users.email = ?
+SELECT id, email, password FROM users WHERE users.email = ?
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (interface{}, error) {
+func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (User, error) {
 	row := db.QueryRowContext(ctx, getUserByEmail, email)
-	var column_1 interface{}
-	err := row.Scan(&column_1)
-	return column_1, err
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.Password)
+	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT (id, email, password) FROM users
+SELECT id, email, password FROM users
 `
 
-func (q *Queries) ListUsers(ctx context.Context, db DBTX) ([]interface{}, error) {
+func (q *Queries) ListUsers(ctx context.Context, db DBTX) ([]User, error) {
 	rows, err := db.QueryContext(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []User
 	for rows.Next() {
-		var column_1 interface{}
-		if err := rows.Scan(&column_1); err != nil {
+		var i User
+		if err := rows.Scan(&i.ID, &i.Email, &i.Password); err != nil {
 			return nil, err
 		}
-		items = append(items, column_1)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
