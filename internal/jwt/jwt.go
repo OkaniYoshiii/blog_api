@@ -45,7 +45,7 @@ func New(issuer string, subject string, audience jwt.ClaimStrings, expiresAt *jw
 }
 
 func ValidateSecret(secret []byte) error {
-	if len(secret) * BitsInByte != SecretMinStrength {
+	if len(secret) * BitsInByte <= SecretMinStrength {
 		return fmt.Errorf("secret must be %d bits long", SecretMinStrength)
 	}
 
