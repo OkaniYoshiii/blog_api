@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/OkaniYoshiii/sqlite-go/internal/config"
 	"github.com/OkaniYoshiii/sqlite-go/internal/database"
+	"github.com/OkaniYoshiii/sqlite-go/internal/jwt"
 	"github.com/OkaniYoshiii/sqlite-go/internal/repository"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -30,6 +33,8 @@ func main() {
 	switch cmd {
 	case "apikey:generate":
 		err = ApiCommand(args)
+	case "jwt:generate-secret":
+	  err = JWTGenerateSecret()
 	default:
 		err = fmt.Errorf("%s: command not found", cmd)
 	}
@@ -79,6 +84,20 @@ func ApiCommand(args []string) error {
 	}
 
 	fmt.Printf("New API Key created : %s\n", apiKey)
+
+	return nil
+}
+
+func JWTGenerateSecret() error {
+	b := [jwt.SecretMinStrength / 8]byte{}
+	_, err := rand.Read(b[:])
+	if err != nil {
+		return err
+	}
+
+	secret := base64.StdEncoding.EncodeToString(b[:])
+
+	fmt.Printf("Generated %d-bit key: %s\n", jwt.SecretMinStrength, secret)
 
 	return nil
 }
