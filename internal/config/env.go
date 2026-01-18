@@ -1,23 +1,30 @@
 package config
 
-import "github.com/joho/godotenv"
+import (
+	"github.com/joho/godotenv"
+)
+
+type Key = string
 
 type Env struct {
-	DatabaseDriver    string
-	DatabaseDSN       string
-	GooseMigrationDir string
+	Database DatabaseEnv
+	JWT JWTEnv
 }
 
 func LoadEnv(filenames ...string) (Env, error) {
-	envMap, err := godotenv.Read(filenames...)
+	envMap, err := godotenv.Read(filenames...);
 	if err != nil {
-		return Env{}, err
+		return Env{}, nil
 	}
 
 	env := Env{}
-	env.DatabaseDriver = envMap["DATABASE_DRIVER"]
-	env.DatabaseDSN = envMap["DATABASE_DSN"]
-	env.GooseMigrationDir = envMap["GOOSE_MIGRATIONS_DIR"]
+
+	env.JWT.Secret = envMap[JWTSecret]
+	env.JWT.TTL = envMap[JWTTTL]
+
+	env.Database.DSN = envMap[DatabaseDSN]
+	env.Database.Driver = envMap[DatabaseDriver]
+	env.Database.MigrationsDir = envMap[DatabaseMigrationsDir]
 
 	return env, nil
 }

@@ -1,24 +1,8 @@
 package config
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/OkaniYoshiii/sqlite-go/internal/jwt"
-)
-
 type Config struct {
 	Database DatabaseConfig
-}
-
-type DatabaseConfig struct {
-	Driver       string
-	DSN          string
-	MigrationDir string
-}
-
+	JWT JWTConfig
 }
 
 func FromEnv(env Env) (Config, error) {
@@ -27,25 +11,13 @@ func FromEnv(env Env) (Config, error) {
 		return Config{}, err
 	}
 
+	jwtConfig, err := JWTConfigFromEnv(env)
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
 		Database: dbConfig,
+		JWT: jwtConfig,
 	}, nil
-}
-
-func DatabaseConfigFromEnv(env Env) (DatabaseConfig, error) {
-	return DatabaseConfig{
-		Driver:       env.DatabaseDriver,
-		DSN:          env.DatabaseDSN,
-		MigrationDir: env.GooseMigrationDir,
-	}, nil
-}
-
-
-	}
-
-
-	}
-
-
 }
