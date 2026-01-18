@@ -26,14 +26,19 @@ var idleTimeout = time.Millisecond * 100
 func main() {
 	flag.Parse()
 
-	config, err := config.Load()
+	env, err := config.LoadEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conf, err := config.FromEnv(env)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	logger, err := debug.NewLogger()
 
-	db, err := database.Open(config.Database.Driver, config.Database.DSN)
+	db, err := database.Open(conf.Database.Driver, conf.Database.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}
