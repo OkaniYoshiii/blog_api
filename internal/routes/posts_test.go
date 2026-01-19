@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 }
 
 func Setup(t *testing.T) Dependencies {
-	db, err := database.Open(env.DatabaseDriver, env.DatabaseDSN)
+	db, err := database.Open(env.Database.Driver, env.Database.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func Setup(t *testing.T) Dependencies {
 		Logger:  logger,
 	}
 
-	migrationDir := filepath.Join("../../", env.GooseMigrationDir)
+	migrationDir := filepath.Join("../../", env.Database.MigrationsDir)
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		log.Fatal(err)
