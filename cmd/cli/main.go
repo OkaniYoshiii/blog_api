@@ -51,7 +51,12 @@ func ApiCommand(args []string) error {
 		return fmt.Errorf("%s is not a valid application. Possible values are %v", application, applications)
 	}
 
-	cfg, err := config.Load()
+	env, err := config.LoadEnv()
+	if err != nil {
+		return err
+	}
+
+	cfg, err := config.FromEnv(env)
 	if err != nil {
 		return err
 	}
