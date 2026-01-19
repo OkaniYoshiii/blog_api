@@ -2,25 +2,13 @@ package config
 
 import "github.com/joho/godotenv"
 
-type Env struct {
-	Database DatabaseEnv
-	JWT JWTEnv
-}
+type Env = map[string]string
 
-func LoadEnv(filenames ...string) (Env, error) {
-	envMap, err := godotenv.Read(filenames...)
+func LoadEnv(filenames ...string) (map[string]string, error) {
+	env, err := godotenv.Read(filenames...)
 	if err != nil {
-		return Env{}, err
+		return map[string]string{}, err
 	}
-
-	env := Env{}
-
-	env.Database.Driver = envMap["DATABASE_DRIVER"]
-	env.Database.DSN = envMap["DATABASE_DSN"]
-	env.Database.MigrationsDir = envMap["GOOSE_MIGRATIONS_DIR"]
-
-	env.JWT.Secret = envMap["JWT_SECRET"]
-	env.JWT.TTL = envMap["JWT_TTL"]
 
 	return env, nil
 }

@@ -1,11 +1,5 @@
 package config
 
-type DatabaseEnv struct {
-	Driver    string
-	DSN       string
-	MigrationsDir string
-}
-
 type DatabaseConfig struct {
 	Driver       string
 	DSN          string
@@ -14,8 +8,8 @@ type DatabaseConfig struct {
 
 func DatabaseConfigFromEnv(env Env) (DatabaseConfig, error) {
 	return DatabaseConfig{
-		Driver:       env.Database.Driver,
-		DSN:          env.Database.DSN,
-		MigrationDir: env.Database.MigrationsDir,
+		Driver:       env["DATABASE_DRIVER"],
+		DSN:          env["DATABASE_DSN"],
+		MigrationDir: env["DATABASE_MIGRATIONS_DIR"],
 	}, nil
 }
