@@ -4,6 +4,7 @@ import "github.com/joho/godotenv"
 
 type Env struct {
 	Database DatabaseEnv
+	JWT JWTEnv
 }
 
 func LoadEnv(filenames ...string) (Env, error) {
@@ -17,6 +18,9 @@ func LoadEnv(filenames ...string) (Env, error) {
 	env.Database.Driver = envMap["DATABASE_DRIVER"]
 	env.Database.DSN = envMap["DATABASE_DSN"]
 	env.Database.MigrationsDir = envMap["GOOSE_MIGRATIONS_DIR"]
+
+	env.JWT.Secret = envMap["JWT_SECRET"]
+	env.JWT.TTL = envMap["JWT_TTL"]
 
 	return env, nil
 }
