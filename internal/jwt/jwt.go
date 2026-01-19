@@ -2,8 +2,12 @@ package jwt
 
 import (
 	"fmt"
+	"slices"
+	"strconv"
 	"time"
 
+	"github.com/OkaniYoshiii/sqlite-go/internal/config"
+	"github.com/OkaniYoshiii/sqlite-go/internal/repository"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -16,6 +20,14 @@ var SigningMethod = jwt.SigningMethodHS256
 
 type Claims struct {
 	jwt.RegisteredClaims
+}
+
+func ValidateSecret(secret []byte) error {
+	if len(secret) * BitsInByte <= SecretMinStrength {
+		return fmt.Errorf("secret must be %d bits long", SecretMinStrength)
+	}
+
+	return nil
 }
 
 // Creates a new signed JWT Token using an HMAC based signing method and a secret
@@ -36,7 +48,19 @@ type Claims struct {
 // You will authenticate with a Facebook/Google server which will send a JWT back.
 // This JWT is then used on your API to access ressources.
 // In this case, the issuer is Google/Facebook and the audience is your API.
-func New(issuer string, subject string, audience []string, expiresAt, notBefore, issuedAt time.Time, id string, secret []byte) (string, error) {
+func NewAuthToken(conf config.Config, user repository.User) (string, error) {
+	ttl := conf.JWT.TTL
+
+	issuer := authTokenIssuer(conf)
+	audience := authTokenAudience(conf)
+	subject := strconv.Itoa(int(user.ID))
+	expiresAt := time.Now().Add(ttl)
+	notBefore := time.Now()
+	issuedAt := time.Now()
+	id := ""
+
+	secret := []byte(conf.JWT.Secret)
+
 	if err := ValidateSecret(secret); err != nil {
 		return "", err
 	}
@@ -62,10 +86,57 @@ func New(issuer string, subject string, audience []string, expiresAt, notBefore,
 	return signed, nil
 }
 
-func ValidateSecret(secret []byte) error {
-	if len(secret) * BitsInByte <= SecretMinStrength {
-		return fmt.Errorf("secret must be %d bits long", SecretMinStrength)
+func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
+	token, err := jwt.Parse(tokenStr, func(_ *jwt.Token) (any, error) {
+		return conf.JWT.Secret, nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+
+	if err != nil {
+		return Claims{}, err
 	}
 
-	return nil
+	claims, ok := token.Claims.(Claims)
+	if !ok {
+		return Claims{}, fmt.Errorf("unexpected claim type: expected %T, got %T", Claims{}, token.Claims)
+	}
+
+	issuer := claims.Issuer
+	if issuer != authTokenIssuer(conf) {
+		return Claims{}, fmt.Errorf("wrong issuer")
+	}
+
+	audience := claims.Audience
+	authTokenAudience := authTokenAudience(conf)
+	for _, val := range audience {
+		if !slices.Contains(authTokenAudience, val) {
+			return Claims{}, fmt.Errorf("wrong audience")
+		}
+	}
+
+	issuedAt := claims.IssuedAt
+	expiresAt := claims.ExpiresAt
+	hasExpired := time.Now().Compare(expiresAt.Time) == 1
+	if hasExpired {
+		return Claims{}, fmt.Errorf("token has expired")
+	}
+
+	hasExpired = time.Now().Compare(issuedAt.Add(conf.JWT.TTL)) == 1
+	if hasExpired {
+		return Claims{}, fmt.Errorf("token has expired")
+	}
+
+	notBefore := claims.NotBefore
+	if time.Now().Compare(notBefore.Time) <= 0 {
+		return Claims{}, fmt.Errorf("token used before being valid")
+	}
+
+	return claims, nil
+}
+
+func authTokenIssuer(conf config.Config) string {
+	return conf.Server.Host
+}
+
+func authTokenAudience(conf config.Config) []string {
+	return []string{conf.Server.Host}
 }
