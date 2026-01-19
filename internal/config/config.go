@@ -3,6 +3,7 @@ package config
 type Config struct {
 	Database DatabaseConfig
 	JWT JWTConfig
+	Server ServerConfig
 }
 
 func FromEnv(env Env) (Config, error) {
@@ -16,8 +17,14 @@ func FromEnv(env Env) (Config, error) {
 		return Config{}, err
 	}
 
+	serverConfig, err := ServerConfigFromEnv(env)
+	if err != nil {
+		return Config{}, err
+	}
+
 	return Config{
 		Database: dbConfig,
 		JWT: jwtConfig,
+		Server: serverConfig,
 	}, nil
 }
