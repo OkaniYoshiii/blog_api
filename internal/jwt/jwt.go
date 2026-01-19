@@ -36,7 +36,7 @@ type Claims struct {
 // You will authenticate with a Facebook/Google server which will send a JWT back.
 // This JWT is then used on your API to access ressources.
 // In this case, the issuer is Google/Facebook and the audience is your API.
-func New(issuer string, subject string, audience jwt.ClaimStrings, expiresAt *jwt.NumericDate, notBefore *jwt.NumericDate, id string, secret []byte) (string, error) {
+func New(issuer string, subject string, audience []string, expiresAt, notBefore, issuedAt time.Time, id string, secret []byte) (string, error) {
 	if err := ValidateSecret(secret); err != nil {
 		return "", err
 	}
@@ -45,10 +45,10 @@ func New(issuer string, subject string, audience jwt.ClaimStrings, expiresAt *jw
 		jwt.RegisteredClaims{
 			Issuer: issuer,
 			Subject: subject,
-			Audience: audience,
-			ExpiresAt: expiresAt,
-			NotBefore: notBefore,
-			IssuedAt: jwt.NewNumericDate(time.Now()),
+			Audience: jwt.ClaimStrings(audience),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			NotBefore: jwt.NewNumericDate(notBefore),
+			IssuedAt: jwt.NewNumericDate(issuedAt),
 			ID: id,
 		},
 	}
