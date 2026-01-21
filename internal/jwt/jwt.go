@@ -18,6 +18,8 @@ const BitsInByte = 8
 
 var SigningMethod = jwt.SigningMethodHS256
 
+// TODO: implémenter une méthode "Valid()" pour pouvoir utiliser "token.Valid" et effectuer la validation du token de cette manière
+// Voir : https://pkg.go.dev/github.com/golang-jwt/jwt/v4@v4.5.2#Claims.Valid
 type Claims struct {
 	jwt.RegisteredClaims
 }
