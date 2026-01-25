@@ -28,7 +28,6 @@ package jwt
 
 import (
 	"fmt"
-	"slices"
 	"strconv"
 	"time"
 
@@ -44,14 +43,12 @@ const BitsInByte = 8
 
 var SigningMethod = jwt.SigningMethodHS256
 
-// TODO: implémenter une méthode "Valid()" pour pouvoir utiliser "token.Valid" et effectuer la validation du token de cette manière
-// Voir : https://pkg.go.dev/github.com/golang-jwt/jwt/v4@v4.5.2#Claims.Valid
 type Claims struct {
 	jwt.RegisteredClaims
 }
 
 func ValidateSecret(secret []byte) error {
-	if len(secret) * BitsInByte <= SecretMinStrength {
+	if len(secret)*BitsInByte <= SecretMinStrength {
 		return fmt.Errorf("secret must be %d bits long", SecretMinStrength)
 	}
 
@@ -80,13 +77,13 @@ func NewAuthToken(conf config.Config, user repository.User) (string, error) {
 
 	claims := Claims{
 		jwt.RegisteredClaims{
-			Issuer: issuer,
-			Subject: subject,
-			Audience: jwt.ClaimStrings(audience),
+			Issuer:    issuer,
+			Subject:   subject,
+			Audience:  jwt.ClaimStrings(audience),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			NotBefore: jwt.NewNumericDate(notBefore),
-			IssuedAt: jwt.NewNumericDate(issuedAt),
-			ID: id,
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
+			ID:        id,
 		},
 	}
 
@@ -103,7 +100,7 @@ func NewAuthToken(conf config.Config, user repository.User) (string, error) {
 // Since [jwt.RegisteredClaims.Valid] does not require that "exp", "iat" and "nbf" claims are present
 // manual validation is made for this type of token.
 func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
-	token, err := jwt.Parse(tokenStr, func(_ *jwt.Token) (any, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (any, error) {
 		return conf.JWT.Secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
@@ -111,39 +108,28 @@ func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) 
 		return Claims{}, err
 	}
 
-	claims, ok := token.Claims.(Claims)
-	if !ok {
-		return Claims{}, fmt.Errorf("unexpected claim type: expected %T, got %T", Claims{}, token.Claims)
+	claims := token.Claims.(*Claims)
+
+	if !claims.VerifyExpiresAt(time.Now(), true) {
+		return Claims{}, jwt.ErrTokenExpired
 	}
 
-	issuer := claims.Issuer
-	if issuer != authTokenIssuer(conf) {
-		return Claims{}, fmt.Errorf("wrong issuer")
+	if !claims.VerifyIssuedAt(time.Now(), true) {
+		return Claims{}, jwt.ErrTokenUsedBeforeIssued
 	}
 
-	audience := claims.Audience
-	authTokenAudience := authTokenAudience(conf)
-	for _, val := range audience {
-		if !slices.Contains(authTokenAudience, val) {
-			return Claims{}, fmt.Errorf("wrong audience")
+	if !claims.VerifyNotBefore(time.Now(), true) {
+		return Claims{}, jwt.ErrTokenNotValidYet
+	}
+
+	if !claims.VerifyIssuer(authTokenIssuer(conf), true) {
+		return Claims{}, jwt.ErrTokenInvalidIssuer
+	}
+
+	for _, aud := range authTokenAudience(conf) {
+		if !claims.VerifyAudience(aud, true) {
+			return Claims{}, jwt.ErrTokenInvalidAudience
 		}
-	}
-
-	issuedAt := claims.IssuedAt
-	expiresAt := claims.ExpiresAt
-	hasExpired := time.Now().Compare(expiresAt.Time) == 1
-	if hasExpired {
-		return Claims{}, fmt.Errorf("token has expired")
-	}
-
-	hasExpired = time.Now().Compare(issuedAt.Add(conf.JWT.TTL)) == 1
-	if hasExpired {
-		return Claims{}, fmt.Errorf("token has expired")
-	}
-
-	notBefore := claims.NotBefore
-	if time.Now().Compare(notBefore.Time) <= 0 {
-		return Claims{}, fmt.Errorf("token used before being valid")
 	}
 
 	return claims, nil
