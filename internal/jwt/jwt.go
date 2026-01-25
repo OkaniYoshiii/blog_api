@@ -1,3 +1,29 @@
+// Package jwt creates and validate application specific tokens
+//
+// As a reminder, JWTs are composed of multiple claims which are :
+//
+// - Issuer (iss) : case sensitive string identifying the server who created it. In this case, this server created the token so this is the URL of this server.
+//
+// - Subject (sub) : identifier of the user, service or whatever else that will use this token. In the case of web auth, it can be an user id.
+//
+// - Audience (aud) : string or URL identifying the service verifying the JWT. In this case, this server is verifying the token so this is the URL of this server.
+//
+// - ExpiresAt (exp) : timestamp where the token should be considered invalid.
+//
+// - NotBefore (nbf) : timestamp indicating that the token is invalid unless current timestamp is greater than this. Can be used to create the token in advance, send it to a client but enabling it later. Must be less than "iat".
+//
+// - Issued At (iat) : timestamp indicating when the token has been created.
+//
+// - JWT ID (jti) : identifier for a particular token. Can be use to revoke the token if it has been compromised. Can also be used for refresh tokens.
+//
+// Issuer and Audience can be different for example when using Google / Facebook login.
+// You will authenticate with a Facebook/Google server which will send a JWT back.
+// This JWT is then used on your API to access ressources.
+// In this case, the issuer is Google/Facebook and the audience is your API.
+//
+// Some types of token will use some claims and not other. This package aims
+// to generate and validate specific tokens like auth tokens, refresh tokens etc ...
+// in the context of this application.
 package jwt
 
 import (
@@ -33,23 +59,8 @@ func ValidateSecret(secret []byte) error {
 }
 
 // Creates a new signed JWT Token using an HMAC based signing method and a secret
-//
-// JWTs are composed of multiple claims which are :
-// - Issuer (iss) : case sensitive string identifying the server who created it. In this case, this server created the token so this is the URL of this server.
-// - Subject (sub) : identifier of the user, service or whatever else that will use this token. In the case of web auth, it can be an user id.
-// - Audience (aud) : string or URL identifying the service verifying the JWT. In this case, this server is verifying the token so this is the URL of this server.
-// - ExpiresAt (exp) : timestamp where the token should be considered invalid.
-// - NotBefore (nbf) : timestamp indicating that the token is invalid unless current timestamp is greater than this. Can be used to create the token in advance, send it to a client but enabling it later. Must be less than "iat".
-// - Issued At (iat) : timestamp indicating when the token has been created.
-// - JWT ID (jti) : identifier for a particular token. Can be use to revoke the token if it has been compromised. Can also be used for refresh tokens.
-//
-// Issued at is automatically assigned with the current timestamp.
-// Other fields are optionnal and will not be included in the JWT if empty.
-//
-// Issuer and Audience can be different for example when using Google / Facebook login.
-// You will authenticate with a Facebook/Google server which will send a JWT back.
-// This JWT is then used on your API to access ressources.
-// In this case, the issuer is Google/Facebook and the audience is your API.
+// Must be used to authenticate a user
+// Can be validated by using [ValidateAuthToken]
 func NewAuthToken(conf config.Config, user repository.User) (string, error) {
 	ttl := conf.JWT.TTL
 
@@ -88,6 +99,9 @@ func NewAuthToken(conf config.Config, user repository.User) (string, error) {
 	return signed, nil
 }
 
+// Validate an authentication token generated with NewAuthToken
+// Since [jwt.RegisteredClaims.Valid] does not require that "exp", "iat" and "nbf" claims are present
+// manual validation is made for this type of token.
 func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
 	token, err := jwt.Parse(tokenStr, func(_ *jwt.Token) (any, error) {
 		return conf.JWT.Secret, nil
