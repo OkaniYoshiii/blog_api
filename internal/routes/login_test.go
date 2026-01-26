@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := [6]struct {
+	tests := [7]struct {
 		Name    string
 		Request struct {
 			Method string
@@ -152,6 +152,18 @@ func TestLogin(t *testing.T) {
 	}
 	tests[5].Expected.StatusCode = http.StatusNotAcceptable
 	tests[5].Expected.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
+	tests[6].Name = `Has multiple "Content-Type" header`
+	tests[6].Request.Method = http.MethodPost
+	tests[6].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))
+	tests[6].Request.Header = http.Header{
+		"Content-Type": []string{"text/plain", "application/json"},
+		"Accept":       []string{"application/json"},
+	}
+	tests[6].Expected.StatusCode = http.StatusOK
+	tests[6].Expected.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 
