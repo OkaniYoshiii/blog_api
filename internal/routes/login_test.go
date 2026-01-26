@@ -72,7 +72,11 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
+<<<<<<< HEAD
 	tests := [4]struct {
+=======
+	tests := [1]struct {
+>>>>>>> 86603777de6a400c8dc240831c4cc3ec98fe218c
 		Name    string
 		Request struct {
 			Method string
