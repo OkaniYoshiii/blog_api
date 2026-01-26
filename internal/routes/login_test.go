@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := [5]struct {
+	tests := [6]struct {
 		Name    string
 		Request struct {
 			Method string
@@ -140,6 +140,18 @@ func TestLogin(t *testing.T) {
 	}
 	tests[4].Expected.StatusCode = http.StatusUnsupportedMediaType
 	tests[4].Expected.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
+	tests[5].Name = `Incorrect "Accept" header`
+	tests[5].Request.Method = http.MethodPost
+	tests[5].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))
+	tests[5].Request.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+		"Accept":       []string{"text/html", "text/plain"},
+	}
+	tests[5].Expected.StatusCode = http.StatusNotAcceptable
+	tests[5].Expected.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 
