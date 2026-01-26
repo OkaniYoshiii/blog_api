@@ -22,7 +22,7 @@
 // In this case, the issuer is Google/Facebook and the audience is your API.
 //
 // Some types of token will use some claims and not other. This package aims
-// to generate and validate specific tokens like auth tokens, refresh tokens etc ...
+// to generate and validate specific tokens like access tokens, refresh tokens etc ...
 // in the context of this application.
 package jwt
 
@@ -57,12 +57,12 @@ func ValidateSecret(secret []byte) error {
 
 // Creates a new signed JWT Token using an HMAC based signing method and a secret
 // Must be used to authenticate a user
-// Can be validated by using [ValidateAuthToken]
-func NewAuthToken(conf config.Config, user repository.User) (string, error) {
+// Can be validated by using [ValidateAccessToken]
+func NewAccessToken(conf config.Config, user repository.User) (string, error) {
 	ttl := conf.JWT.TTL
 
-	issuer := authTokenIssuer(conf)
-	audience := authTokenAudience(conf)
+	issuer := accessTokenIssuer(conf)
+	audience := accessTokenAudience(conf)
 	subject := strconv.Itoa(int(user.ID))
 	expiresAt := time.Now().Add(ttl)
 	notBefore := time.Now()
@@ -96,10 +96,10 @@ func NewAuthToken(conf config.Config, user repository.User) (string, error) {
 	return signed, nil
 }
 
-// Validate an authentication token generated with NewAuthToken
+// Validate an access token generated with [NewAccessToken]
 // Since [jwt.RegisteredClaims.Valid] does not require that "exp", "iat" and "nbf" claims are present
 // manual validation is made for this type of token.
-func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
+func ValidateAccessToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (any, error) {
 		return conf.JWT.Secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
@@ -122,11 +122,11 @@ func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) 
 		return Claims{}, jwt.ErrTokenNotValidYet
 	}
 
-	if !claims.VerifyIssuer(authTokenIssuer(conf), true) {
+	if !claims.VerifyIssuer(accessTokenIssuer(conf), true) {
 		return Claims{}, jwt.ErrTokenInvalidIssuer
 	}
 
-	for _, aud := range authTokenAudience(conf) {
+	for _, aud := range accessTokenAudience(conf) {
 		if !claims.VerifyAudience(aud, true) {
 			return Claims{}, jwt.ErrTokenInvalidAudience
 		}
@@ -135,10 +135,10 @@ func ValidateAuthToken(tokenStr string, conf config.Config) (jwt.Claims, error) 
 	return claims, nil
 }
 
-func authTokenIssuer(conf config.Config) string {
+func accessTokenIssuer(conf config.Config) string {
 	return conf.Server.Host
 }
 
-func authTokenAudience(conf config.Config) []string {
+func accessTokenAudience(conf config.Config) []string {
 	return []string{conf.Server.Host}
 }
