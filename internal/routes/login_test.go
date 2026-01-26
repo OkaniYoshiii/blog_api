@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := [3]struct {
+	tests := [4]struct {
 		Name    string
 		Request struct {
 			Method string
@@ -116,6 +116,18 @@ func TestLogin(t *testing.T) {
 	}
 	tests[2].Expected.StatusCode = http.StatusUnauthorized
 	tests[2].Expected.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
+	tests[3].Name = "Incorrect password"
+	tests[3].Request.Method = http.MethodPost
+	tests[3].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, email, "wrong_password"))
+	tests[3].Request.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+		"Accept":       []string{"application/json"},
+	}
+	tests[3].Expected.StatusCode = http.StatusUnauthorized
+	tests[3].Expected.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 
