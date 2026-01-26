@@ -93,12 +93,14 @@ func PostLoginHandler(
 			return
 		}
 
+		logger.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	token, err := jwt.NewAccessToken(*conf, user)
 	if err != nil {
+		logger.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -109,6 +111,7 @@ func PostLoginHandler(
 
 	encoder := json.NewEncoder(writer)
 	if err := encoder.Encode(responseBody); err != nil {
+		logger.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
