@@ -72,11 +72,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-<<<<<<< HEAD
-	tests := [4]struct {
-=======
-	tests := [1]struct {
->>>>>>> 86603777de6a400c8dc240831c4cc3ec98fe218c
+	tests := [5]struct {
 		Name    string
 		Request struct {
 			Method string
@@ -132,6 +128,18 @@ func TestLogin(t *testing.T) {
 	}
 	tests[3].Expected.StatusCode = http.StatusUnauthorized
 	tests[3].Expected.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
+	tests[4].Name = `Incorrect "Content-Type" header`
+	tests[4].Request.Method = http.MethodPost
+	tests[4].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))
+	tests[4].Request.Header = http.Header{
+		"Content-Type": []string{"text/html", "text/plain"},
+		"Accept":       []string{"application/json"},
+	}
+	tests[4].Expected.StatusCode = http.StatusUnsupportedMediaType
+	tests[4].Expected.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 
