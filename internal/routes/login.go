@@ -40,6 +40,8 @@ func PostLoginHandler(
 	db repository.DBTX,
 	conf *config.Config,
 ) {
+	writer.Header().Set("Content-Type", "application/json")
+
 	if request.Header.Get("Accept") != "application/json" {
 		writer.WriteHeader(http.StatusNotAcceptable)
 		return
