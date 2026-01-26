@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -83,6 +84,12 @@ func PostLoginHandler(
 
 	user, err := queries.GetUserByEmail(context.Background(), db, credentials.Email)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		logger.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
