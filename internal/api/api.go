@@ -48,6 +48,7 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
 	mux.HandleFunc("POST /api/v1/posts", routes.PostsHandler(deps))
 	mux.HandleFunc("POST /api/v1/register", routes.RegisterHandler(deps))
+	mux.HandleFunc("POST /api/v1/login", routes.LoginHandler(logger, validate, queries, db, &conf))
 
 	server := http.Server{
 		Addr:              address,
