@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/OkaniYoshiii/sqlite-go/internal/config"
 	"github.com/OkaniYoshiii/sqlite-go/internal/jwt"
@@ -43,12 +44,12 @@ func PostLoginHandler(
 ) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	if request.Header.Get("Accept") != "application/json" {
+	if !slices.Contains(request.Header["Accept"], "application/json") {
 		writer.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
-	if request.Header.Get("Content-Type") != "application/json" {
+	if !slices.Contains(request.Header["Content-Type"], "application/json") {
 		writer.WriteHeader(http.StatusUnsupportedMediaType)
 		return
 	}
