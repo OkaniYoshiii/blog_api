@@ -2,20 +2,76 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/OkaniYoshiii/sqlite-go/internal/config"
 	"github.com/OkaniYoshiii/sqlite-go/internal/database"
 	"github.com/OkaniYoshiii/sqlite-go/internal/repository"
 	"github.com/go-playground/validator/v10"
+	"github.com/pressly/goose/v3"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestLogin(t *testing.T) {
+	env, err := config.LoadEnv("../../.env.test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.Config{
+		Database: config.DatabaseConfig{
+			Driver: env["DATABASE_DRIVER"],
+			DSN:    env["DATABASE_DSN"],
+		},
+		Server: config.ServerConfig{
+			Host: "example.com",
+			Port: 80,
+		},
+		JWT: config.JWTConfig{
+			Secret: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			TTL:    time.Duration(100) * time.Second,
+		},
+	}
+
+	logsBuffer := strings.Builder{}
+	logger := log.New(&logsBuffer, log.Default().Prefix(), log.Default().Flags())
+	queries := repository.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	db, err := database.Open(conf.Database.Driver, conf.Database.DSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	migrationDir := filepath.Join("../../", env["DATABASE_MIGRATIONS_DIR"])
+
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := goose.Up(db, migrationDir); err != nil {
+		log.Fatal(err)
+	}
+
+	email := "user@mail.com"
+	password := "password_longer_than_8_caracters"
+
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := queries.CreateUser(context.Background(), db, repository.CreateUserParams{Email: email, Password: string(hashedPwd)}); err != nil {
+		t.Fatal(err)
+	}
+
 	tests := [1]struct {
 		Name    string
 		Request struct {
@@ -29,33 +85,9 @@ func TestLogin(t *testing.T) {
 		}
 	}{}
 
-	env, err := config.LoadEnv("../../.env.test")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	conf, err := config.FromEnv(env)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	logger := log.New(&strings.Builder{}, log.Default().Prefix(), log.Default().Flags())
-	queries := repository.New()
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	db, err := database.Open(conf.Database.Driver, conf.Database.DSN)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	createUserParams := repository.CreateUserParams{
-		Email:    "user@mail.com",
-		Password: "password_longer_than_8_caracters",
-	}
-
-	queries.CreateUser(context.Background(), db, createUserParams)
 	tests[0].Name = "Successfull test"
 	tests[0].Request.Method = "POST"
-	tests[0].Request.Body = strings.NewReader(`{"email": "", "password": ""}`)
+	tests[0].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, email, password))
 	tests[0].Request.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 		"Accept":       []string{"application/json"},
@@ -69,6 +101,7 @@ func TestLogin(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			request, _ := http.NewRequest(test.Request.Method, "/api/v1/login", test.Request.Body)
+			request.Header = test.Request.Header
 
 			handler := LoginHandler(logger, validate, queries, db, &conf)
 			handler(recorder, request)
@@ -76,6 +109,7 @@ func TestLogin(t *testing.T) {
 			response := recorder.Result()
 
 			if response.StatusCode != test.Expected.StatusCode {
+				t.Log(logsBuffer.String())
 				t.Errorf("unexpected response status code : expected %d, got %d", test.Expected.StatusCode, response.StatusCode)
 			}
 
