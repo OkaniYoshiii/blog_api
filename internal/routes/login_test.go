@@ -72,7 +72,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := [2]struct {
+	tests := [3]struct {
 		Name    string
 		Request struct {
 			Method string
@@ -107,6 +107,18 @@ func TestLogin(t *testing.T) {
 	tests[1].Expected.StatusCode = http.StatusMethodNotAllowed
 	tests[1].Expected.Header = http.Header{}
 
+	tests[2].Name = "Incorrect email"
+	tests[2].Request.Method = http.MethodPost
+	tests[2].Request.Body = strings.NewReader(fmt.Sprintf(`{"email": %q, "password": %q}`, "unknown@mail.com", password))
+	tests[2].Request.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+		"Accept":       []string{"application/json"},
+	}
+	tests[2].Expected.StatusCode = http.StatusUnauthorized
+	tests[2].Expected.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
@@ -128,6 +140,7 @@ func TestLogin(t *testing.T) {
 				got := response.Header.Get(header)
 
 				if expected != got {
+					t.Log(logsBuffer.String())
 					t.Errorf("unexpected response header %q : expected %#v, got %#v", header, expected, got)
 				}
 			}
