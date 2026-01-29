@@ -99,7 +99,7 @@ func NewAccessToken(conf config.Config, user repository.User) (string, error) {
 // Validate an access token generated with [NewAccessToken]
 // Since [jwt.RegisteredClaims.Valid] does not require that "exp", "iat" and "nbf" claims are present
 // manual validation is made for this type of token.
-func ValidateAccessToken(tokenStr string, conf config.Config) (jwt.Claims, error) {
+func ValidateAccessToken(tokenStr string, conf config.Config) (Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (any, error) {
 		return conf.JWT.Secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
@@ -132,7 +132,7 @@ func ValidateAccessToken(tokenStr string, conf config.Config) (jwt.Claims, error
 		}
 	}
 
-	return claims, nil
+	return *claims, nil
 }
 
 func accessTokenIssuer(conf config.Config) string {
