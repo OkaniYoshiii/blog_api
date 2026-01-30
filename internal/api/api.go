@@ -44,6 +44,9 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 		Logger:  logger,
 	}
 
+	apiMiddleware := middleware.ApiMiddleware(db, queries, logger, validate)
+	cspMiddleware := middleware.CSPMiddleware()
+
 	mux.HandleFunc("GET /api/v1/health", routes.HealthHandler(deps))
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
 	mux.HandleFunc("POST /api/v1/posts", routes.PostsHandler(deps))
@@ -56,7 +59,7 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 		ReadHeaderTimeout: time.Millisecond * time.Duration(readHeaderTimeout),
 		WriteTimeout:      time.Millisecond * time.Duration(writeTimeout),
 		IdleTimeout:       time.Duration(idleTimeout),
-		Handler:           middleware.ApiMiddleware(middleware.CSPMiddleware(mux), db, queries, logger, validate),
+		Handler:           apiMiddleware(cspMiddleware(mux)),
 		ErrorLog:          logger,
 	}
 
