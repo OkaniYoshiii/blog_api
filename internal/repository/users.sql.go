@@ -36,6 +36,22 @@ func (q *Queries) GetUserByEmail(ctx context.Context, db DBTX, email string) (Us
 	return i, err
 }
 
+const getUserById = `-- name: GetUserById :one
+SELECT id, email FROM users WHERE users.id = ?
+`
+
+type GetUserByIdRow struct {
+	ID    int64  `json:"id"`
+	Email string `json:"email"`
+}
+
+func (q *Queries) GetUserById(ctx context.Context, db DBTX, id int64) (GetUserByIdRow, error) {
+	row := db.QueryRowContext(ctx, getUserById, id)
+	var i GetUserByIdRow
+	err := row.Scan(&i.ID, &i.Email)
+	return i, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, email, password FROM users
 `
