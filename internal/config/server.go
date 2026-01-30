@@ -1,35 +1,18 @@
 package config
 
-import (
-	"strconv"
-)
-
 type ServerConfig struct {
-	Host string
-	Port int
+	Address string
 }
 
-const DefaultServerPort = 8000
-const DefaultServerHost = "127.0.0.1"
+const DefaultServerAddress = "127.0.0.1:8000"
 
 func ServerConfigFromEnv(env Env) (ServerConfig, error) {
-	var err error
-	port := DefaultServerPort
-	if envPort := env["SERVER_PORT"]; envPort != "" {
-		port, err = strconv.Atoi(envPort)
-	}
-
-	if err != nil {
-		return ServerConfig{}, err
-	}
-
-	host := env["SERVER_HOST"]
-	if host == "" {
-		host = DefaultServerHost
+	address := env["SERVER_ADDRESS"]
+	if address == "" {
+		address = DefaultServerAddress
 	}
 
 	return ServerConfig{
-		Host: host,
-		Port: port,
+		Address: address,
 	}, nil
 }
