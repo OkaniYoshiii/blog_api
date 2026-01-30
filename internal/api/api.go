@@ -59,8 +59,11 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 		ReadHeaderTimeout: time.Millisecond * time.Duration(readHeaderTimeout),
 		WriteTimeout:      time.Millisecond * time.Duration(writeTimeout),
 		IdleTimeout:       time.Duration(idleTimeout),
-		Handler:           apiMiddleware(cspMiddleware(mux)),
-		ErrorLog:          logger,
+		Handler: middleware.Pipe(
+			apiMiddleware,
+			cspMiddleware,
+		)(mux),
+		ErrorLog: logger,
 	}
 
 	defer func() {
