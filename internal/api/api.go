@@ -48,7 +48,7 @@ func Run() error {
 	cspMiddleware := middleware.CSPMiddleware()
 	authMiddleware := middleware.AuthMiddleware(*queries, db, &conf)
 	corsMiddleware := middleware.CorsMiddleware(conf.CORS.TrustedOrigins)
-	rateLimiterMiddleware := middleware.RateLimiterMiddleware(0.5)
+	rateLimiterMiddleware := middleware.RateLimiterMiddleware(conf.Server.RateLimit)
 
 	mux.HandleFunc("GET /api/v1/health", routes.HealthHandler(deps))
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
