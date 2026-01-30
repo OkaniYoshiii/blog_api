@@ -10,6 +10,7 @@ type ServerConfig struct {
 }
 
 const DefaultServerPort = 8000
+const DefaultServerHost = "127.0.0.1"
 
 func ServerConfigFromEnv(env Env) (ServerConfig, error) {
 	var err error
@@ -22,8 +23,13 @@ func ServerConfigFromEnv(env Env) (ServerConfig, error) {
 		return ServerConfig{}, err
 	}
 
+	host := env["SERVER_HOST"]
+	if host == "" {
+		host = DefaultServerHost
+	}
+
 	return ServerConfig{
-		Host: env["SERVER_HOST"],
+		Host: host,
 		Port: port,
 	}, nil
 }
