@@ -48,6 +48,7 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 	cspMiddleware := middleware.CSPMiddleware()
 	authMiddleware := middleware.AuthMiddleware(*queries, db, &conf)
 	corsMiddleware := middleware.CorsMiddleware(conf.CORS.TrustedOrigins)
+	rateLimiterMiddleware := middleware.RateLimiterMiddleware(0.5)
 
 	mux.HandleFunc("GET /api/v1/health", routes.HealthHandler(deps))
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
@@ -63,6 +64,7 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 		IdleTimeout:       time.Duration(idleTimeout),
 		Handler: middleware.Pipe(
 			corsMiddleware,
+			rateLimiterMiddleware,
 			apiMiddleware,
 			cspMiddleware,
 		)(mux),
