@@ -15,7 +15,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeout int) error {
+func Run() error {
 	env, err := config.LoadEnv()
 	if err != nil {
 		return err
@@ -57,11 +57,11 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 	mux.HandleFunc("POST /api/v1/login", routes.LoginHandler(logger, validate, queries, db, &conf))
 
 	server := http.Server{
-		Addr:              address,
-		ReadTimeout:       time.Millisecond * time.Duration(readTimeout),
-		ReadHeaderTimeout: time.Millisecond * time.Duration(readHeaderTimeout),
-		WriteTimeout:      time.Millisecond * time.Duration(writeTimeout),
-		IdleTimeout:       time.Duration(idleTimeout),
+		Addr:              conf.Server.Address,
+		ReadTimeout:       time.Second * time.Duration(5),
+		ReadHeaderTimeout: time.Millisecond * time.Duration(100),
+		WriteTimeout:      time.Millisecond * time.Duration(100),
+		IdleTimeout:       time.Duration(50),
 		Handler: middleware.Pipe(
 			corsMiddleware,
 			rateLimiterMiddleware,
@@ -78,7 +78,7 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 		}
 	}()
 
-	fmt.Printf("Server listening on %s\n", address)
+	fmt.Printf("Server listening on %s\n", conf.Server.Address)
 	if err := server.ListenAndServe(); err != nil {
 		return err
 	}

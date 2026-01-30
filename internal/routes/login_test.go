@@ -32,8 +32,7 @@ func TestLogin(t *testing.T) {
 			DSN:    env["DATABASE_DSN"],
 		},
 		Server: config.ServerConfig{
-			Host: "example.com",
-			Port: 80,
+			Address: "example.com",
 		},
 		JWT: config.JWTConfig{
 			Secret: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

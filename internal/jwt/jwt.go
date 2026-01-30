@@ -136,9 +136,9 @@ func ValidateAccessToken(tokenStr string, conf config.Config) (Claims, error) {
 }
 
 func accessTokenIssuer(conf config.Config) string {
-	return conf.Server.Host
+	return conf.Server.Address
 }
 
 func accessTokenAudience(conf config.Config) []string {
-	return []string{conf.Server.Host}
+	return []string{conf.Server.Address}
 }
