@@ -46,10 +46,11 @@ func Run(address string, readTimeout, readHeaderTimeout, writeTimeout, idleTimeo
 
 	apiMiddleware := middleware.ApiMiddleware(db, queries, logger, validate)
 	cspMiddleware := middleware.CSPMiddleware()
+	authMiddleware := middleware.AuthMiddleware(*queries, db, &conf)
 
 	mux.HandleFunc("GET /api/v1/health", routes.HealthHandler(deps))
 	mux.HandleFunc("GET /api/v1/posts", routes.PostsHandler(deps))
-	mux.HandleFunc("POST /api/v1/posts", routes.PostsHandler(deps))
+	mux.Handle("POST /api/v1/posts", middleware.Pipe(authMiddleware)(routes.PostsHandler(deps)))
 	mux.HandleFunc("POST /api/v1/register", routes.RegisterHandler(deps))
 	mux.HandleFunc("POST /api/v1/login", routes.LoginHandler(logger, validate, queries, db, &conf))
 
